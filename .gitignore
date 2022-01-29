@@ -3,5 +3,4 @@
 /target/
 /templates/
 
-.idea/*/*
-!.idea/runConfigurations/*
+.idea/*
