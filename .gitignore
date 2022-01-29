@@ -2,3 +2,6 @@
 /db/
 /target/
 /templates/
+
+.idea/*/*
+!.idea/runConfigurations/*
