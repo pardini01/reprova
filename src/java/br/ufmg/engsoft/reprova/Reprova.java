@@ -13,7 +13,7 @@ import spark.template.mustache.MustacheTemplateEngine;
 
 public class Reprova {
 
-    private final static String JWT_SALT = "12345678901234567890123456789012";
+    private static final String JWT_SALT = "12345678901234567890123456789012";
     protected static final MustacheTemplateEngine templateEngine = new MustacheTemplateEngine();
 
     public static void main(String[] args) {

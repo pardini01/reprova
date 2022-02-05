@@ -23,16 +23,26 @@ public class AuthorizerConfigFactory implements ConfigFactory {
 
     @Override
     public Config build(final Object... parameters) {
-        var parameterClient = new ParameterClient("token", new JwtAuthenticator(new SecretSignatureConfiguration(salt)));
-        parameterClient.setSupportGetRequest(true);
-        parameterClient.setSupportPostRequest(false);
+        var parameterClient = buildParameterClient();
 
         final var clients = new Clients("http://localhost:8080/callback", parameterClient);
 
+        return buildConfigWithClients(clients);
+    }
+
+    private Config buildConfigWithClients(Clients clients) {
         final var config = new Config(clients);
         config.addAuthorizer("admin", new RequireAnyRoleAuthorizer("ROLE_ADMIN"));
-        //config.addMatcher("excludedPath", new PathMatcher().excludeRegex("^/auth"));
+        config.addMatcher("excludedPath", new PathMatcher().excludeRegex("^/auth$"));
+
         config.setHttpActionAdapter(new AuthorizerHttpActionAdapter(templateEngine));
         return config;
+    }
+
+    private ParameterClient buildParameterClient() {
+        var parameterClient = new ParameterClient("token", new JwtAuthenticator(new SecretSignatureConfiguration(salt)));
+        parameterClient.setSupportGetRequest(true);
+        parameterClient.setSupportPostRequest(true);
+        return parameterClient;
     }
 }

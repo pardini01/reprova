@@ -21,6 +21,7 @@ public class Authorizer {
     private static final String USER_ADMIN_PASSWORD = "654321";
 
     private static final String JWT_SALT = "12345678901234567890123456789012";
+    private static final int JWT_DURATION_5_MINUTES = 300000;
 
     protected static final Logger logger = LoggerFactory.getLogger(Authorizer.class);
 
@@ -32,21 +33,31 @@ public class Authorizer {
     private ModelAndView jwt(final Request request, final Response response) {
         var token = "";
         if (isValidUserRequest(request)) {
-            var commonProfile = new CommonProfile();
-            commonProfile.setId("admin");
-            var roles = new LinkedHashSet();
-            roles.add("ROLE_ADMIN");
-            commonProfile.setRoles(roles);
-            var generator = new JwtGenerator(new SecretSignatureConfiguration(JWT_SALT));
-            //now + 5 minutes
-            var dateNow = new Date();
-            generator.setExpirationTime(new Date(dateNow.getTime()+300000));
-            token = generator.generate(commonProfile);
+            CommonProfile commonProfile = createCommonProfile();
+            token = generateTokenWithDuration(commonProfile);
         }
         response.type("application/json");
         final var map = new HashMap();
         map.put("token", token);
         return new ModelAndView(map, "jwt.mustache");
+    }
+
+    private String generateTokenWithDuration(CommonProfile commonProfile) {
+        String token;
+        var generator = new JwtGenerator(new SecretSignatureConfiguration(JWT_SALT));
+        var dateNow = new Date();
+        generator.setExpirationTime(new Date(dateNow.getTime()+ JWT_DURATION_5_MINUTES));
+        token = generator.generate(commonProfile);
+        return token;
+    }
+
+    private CommonProfile createCommonProfile() {
+        var commonProfile = new CommonProfile();
+        commonProfile.setId("admin");
+        var roles = new LinkedHashSet();
+        roles.add("ROLE_ADMIN");
+        commonProfile.setRoles(roles);
+        return commonProfile;
     }
 
     private boolean isValidUserRequest(Request request) {

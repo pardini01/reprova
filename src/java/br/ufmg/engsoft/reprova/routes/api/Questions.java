@@ -102,8 +102,7 @@ public class Questions extends ReprovaRoute {
     }
 
     response.type("application/json");
-
-    logger.info("Fetching question " + id);
+    logger.info(String.format("Fetching question %s", id));
 
     var question = questionsDAO.get(id);
 
