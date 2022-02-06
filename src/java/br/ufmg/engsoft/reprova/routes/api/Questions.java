@@ -1,5 +1,6 @@
 package br.ufmg.engsoft.reprova.routes.api;
 
+import spark.ModelAndView;
 import spark.Spark;
 import spark.Request;
 import spark.Response;
@@ -8,11 +9,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import br.ufmg.engsoft.reprova.database.QuestionsDAO;
 import br.ufmg.engsoft.reprova.model.Question;
 import br.ufmg.engsoft.reprova.model.ReprovaRoute;
 import br.ufmg.engsoft.reprova.mime.json.Json;
+import spark.template.mustache.MustacheTemplateEngine;
 
 
 /**
@@ -61,9 +65,10 @@ public class Questions extends ReprovaRoute {
    * - get
    * - post
    * - delete
+   * @param templateEngine
    */
-  public void setup() {
-    Spark.get("/api/questions", this::get);
+  public void setup(MustacheTemplateEngine templateEngine) {
+    Spark.get("/api/questions", this::get, templateEngine);
     Spark.post("/api/questions", this::post);
     Spark.delete("/api/questions", this::delete);
     Spark.delete("/api/questions/deleteAll", this::deleteAll);
@@ -75,58 +80,52 @@ public class Questions extends ReprovaRoute {
    * Get endpoint: lists all questions, or a single question if a 'id' query parameter is
    * provided.
    */
-  protected Object get(Request request, Response response) {
+  private ModelAndView get(Request request, Response response) {
     logger.info("Received questions get:");
 
     var id = request.queryParams("id");
-    var auth = authorized(request.queryParams("token"));
-      
+
     if (id == null) {
-    	return this.get(request, response, auth);
+    	return get(request, response, true);
     }
      
-    return this.get(request, response, id, auth);
+    return get(request, response, id, true);
   }
 
   /**
    * Get id endpoint: fetch the specified question from the database.
    * If not authorised, and the given question is private, returns an error message.
    */
-  protected Object get(Request request, Response response, String id, boolean auth) {
+  private ModelAndView get(Request request, Response response, String id, boolean auth) {
     if (id == null) {
       throw new IllegalArgumentException("id mustn't be null");
     }
 
     response.type("application/json");
-
-    logger.info("Fetching question " + id);
+    logger.info(String.format("Fetching question %s", id));
 
     var question = questionsDAO.get(id);
 
     if (question == null) {
       logger.error("Invalid request!");
       response.status(400);
-      return invalid;
-    }
-
-    if (question.pvt && !auth) {
-      logger.info("Unauthorized token: " + token);
-      response.status(403);
-      return unauthorized;
+      return new ModelAndView(new HashMap<>(), "error400.mustache");
     }
 
     logger.info("Done. Responding...");
 
     response.status(200);
 
-    return json.render(question);
+    final Map map = new HashMap();
+    map.put("response", json.render(question));
+    return new ModelAndView(map, "response.mustache");
   }
 
   /**
    * Get all endpoint: fetch all questions from the database.
    * If not authorized, fetches only public questions.
    */
-  protected Object get(Request request, Response response, boolean auth) {
+  private ModelAndView get(Request request, Response response, boolean auth) {
     response.type("application/json");
 
     logger.info("Fetching questions.");
@@ -140,7 +139,9 @@ public class Questions extends ReprovaRoute {
 
     response.status(200);
 
-    return json.render(questions);
+    final Map map = new HashMap();
+    map.put("response", json.render(questions));
+    return new ModelAndView(map, "response.mustache");
   }
 
 
@@ -151,20 +152,12 @@ public class Questions extends ReprovaRoute {
    * Otherwise, the given question is added as a new question in the database.
    * This endpoint is for authorized access only.
    */
-  protected Object post(Request request, Response response) {
+  private Object post(Request request, Response response) {
     String body = request.body();
 
     logger.info("Received questions post:" + body);
 
     response.type("application/json");
-
-    var token = request.queryParams("token");
-
-    if (!authorized(token)) {
-      logger.info("Unauthorized token: " + token);
-      response.status(403);
-      return unauthorized;
-    }
 
     Question question;
     try {
@@ -175,7 +168,7 @@ public class Questions extends ReprovaRoute {
     catch (Exception e) {
       logger.error("Invalid request payload!", e);
       response.status(400);
-      return invalid;
+      return new ModelAndView(new HashMap<>(), "error400.mustache");
     }
 
     logger.info("Parsed " + question.toString());
@@ -199,24 +192,17 @@ public class Questions extends ReprovaRoute {
    * The question's id must be supplied through the 'id' query parameter.
    * This endpoint is for authorized access only.
    */
-  protected Object delete(Request request, Response response) {
+  private Object delete(Request request, Response response) {
     logger.info("Received questions delete:");
 
     response.type("application/json");
 
     var id = request.queryParams("id");
-    var token = request.queryParams("token");
-
-    if (!authorized(token)) {
-      logger.info("Unauthorized token: " + token);
-      response.status(403);
-      return unauthorized;
-    }
 
     if (id == null) {
       logger.error("Invalid request!");
       response.status(400);
-      return invalid;
+      return new ModelAndView(new HashMap<>(), "error400.mustache");
     }
 
     logger.info("Deleting question " + id);
@@ -241,14 +227,6 @@ public class Questions extends ReprovaRoute {
     logger.info("Received questions delete all:");
 
     response.type("application/json");
-
-    var token = request.queryParams("token");
-
-    if (!authorized(token)) {
-      logger.info("Unauthorized token: " + token);
-      response.status(403);
-      return unauthorized;
-    }
 
     boolean success = false;
     logger.info("Deleting all questions");

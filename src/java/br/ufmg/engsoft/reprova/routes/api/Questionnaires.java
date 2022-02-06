@@ -1,5 +1,6 @@
 package br.ufmg.engsoft.reprova.routes.api;
 
+import spark.ModelAndView;
 import spark.Spark;
 import spark.Request;
 import spark.Response;
@@ -8,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import br.ufmg.engsoft.reprova.database.QuestionnairesDAO;
 import br.ufmg.engsoft.reprova.database.QuestionsDAO;
@@ -15,6 +18,7 @@ import br.ufmg.engsoft.reprova.model.Environments;
 import br.ufmg.engsoft.reprova.model.Question;
 import br.ufmg.engsoft.reprova.model.Questionnaire;
 import br.ufmg.engsoft.reprova.mime.json.Json;
+import spark.template.mustache.MustacheTemplateEngine;
 
 /**
  * Questionnaires route.
@@ -84,9 +88,10 @@ public class Questionnaires {
    * - post
    * - generate
    * - delete
+   * @param templateEngine
    */
-  public void setup() {
-    Spark.get("/api/questionnaires", this::get);
+  public void setup(MustacheTemplateEngine templateEngine) {
+    Spark.get("/api/questionnaires", this::get, templateEngine);
     Spark.post("/api/questionnaires", this::post);
     Spark.post("/api/questionnaires/generate", this::generate);
     Spark.delete("/api/questionnaires", this::delete);
@@ -106,7 +111,7 @@ public class Questionnaires {
    * Get endpoint: lists all questionnaires, or a single questionnaire if a 'id' query parameter is
    * provided.
    */
-  protected Object get(Request request, Response response) {
+  protected ModelAndView get(Request request, Response response) {
     logger.info("Received questionnaires get:");
 
     var id = request.queryParams("id");
@@ -123,7 +128,7 @@ public class Questionnaires {
    * Get id endpoint: fetch the specified questionnaire from the database.
    * If not authorised, and the given questionnaire is private, returns an error message.
    */
-  protected Object get(Request request, Response response, String id, boolean auth) {
+  protected ModelAndView get(Request request, Response response, String id, boolean auth) {
     if (id == null) {
       throw new IllegalArgumentException("id mustn't be null");
     }
@@ -137,21 +142,23 @@ public class Questionnaires {
     if (questionnaire == null) {
       logger.error("Invalid request!");
       response.status(400);
-      return invalid;
+      return new ModelAndView(new HashMap<>(), "error400.mustache");
     }
 
     logger.info("Done. Responding...");
 
     response.status(200);
 
-    return json.render(questionnaire);
+    final Map map = new HashMap();
+    map.put("response", json.render(questionnaire));
+    return new ModelAndView(map, "response.mustache");
   }
 
   /**
    * Get all endpoint: fetch all questionnaires from the database.
    * If not authorized, fetches only public questionnaires.
    */
-  protected Object get(Request request, Response response, boolean auth) {
+  protected ModelAndView get(Request request, Response response, boolean auth) {
     response.type("application/json");
 
     logger.info("Fetching questionnaires.");
@@ -162,7 +169,9 @@ public class Questionnaires {
 
     response.status(200);
 
-    return json.render(questionnaires);
+    final Map map = new HashMap();
+    map.put("response", json.render(questionnaires));
+    return new ModelAndView(map, "response.mustache");
   }
 
   /**
@@ -204,14 +213,6 @@ public class Questionnaires {
     logger.info("Received questionnaires post:" + body);
 
     response.type("application/json");
-
-    var token = request.queryParams("token");
-
-    if (!authorized(token)) {
-      logger.info("Unauthorized token: " + token);
-      response.status(403);
-      return unauthorized;
-    }
 
     Questionnaire questionnaire;
     try {
@@ -262,14 +263,6 @@ public class Questionnaires {
 
     response.type("application/json");
 
-    var token = request.queryParams("token");
-
-    if (!authorized(token)) {
-      logger.info("Unauthorized token: " + token);
-      response.status(403);
-      return unauthorized;
-    }
-
     Questionnaire questionnaire;
     try {
       questionnaire = json
@@ -311,18 +304,11 @@ public class Questionnaires {
     response.type("application/json");
 
     var id = request.queryParams("id");
-    var token = request.queryParams("token");
-
-    if (!authorized(token)) {
-      logger.info("Unauthorized token: " + token);
-      response.status(403);
-      return unauthorized;
-    }
 
     if (id == null) {
       logger.error("Invalid request!");
       response.status(400);
-      return invalid;
+      return new ModelAndView(new HashMap<>(), "error400.mustache");
     }
 
     logger.info("Deleting questionnaire " + id);
@@ -347,14 +333,6 @@ public class Questionnaires {
     logger.info("Received questionnaires delete all:");
 
     response.type("application/json");
-
-    var token = request.queryParams("token");
-
-    if (!authorized(token)) {
-      logger.info("Unauthorized token: " + token);
-      response.status(403);
-      return unauthorized;
-    }
 
     logger.info("Deleting all questionnaires");
 

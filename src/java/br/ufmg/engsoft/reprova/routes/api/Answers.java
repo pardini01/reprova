@@ -10,6 +10,7 @@ import br.ufmg.engsoft.reprova.model.ReprovaRoute;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
+import spark.template.mustache.MustacheTemplateEngine;
 
 public class Answers extends ReprovaRoute {
 	/**
@@ -50,8 +51,9 @@ public class Answers extends ReprovaRoute {
 	   * - get
 	   * - post
 	   * - delete
-	   */
-	  public void setup() {
+	 * @param templateEngine
+	 */
+	  public void setup(MustacheTemplateEngine templateEngine) {
 	    Spark.get("/api/questions/:questionId/answers", this::getAllAnswers);
 	    Spark.get("/api/questions/:questionId/answers/:answerId", (req, res) -> "Specific answer");
 	    Spark.post("/api/questions/:questionId/answers", this::addAnswer);
