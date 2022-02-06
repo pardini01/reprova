@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+
+    <title>Reprova</title>
+
+    <link rel="icon" href="images/favicon.png" />
+
+
+    <script
+            src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+
+    <script>
+        const url = new URL(window.location.href);
+        const token = url.searchParams.get("token") || localStorage.getItem("token");
+
+        async function saveUser() {
+            const username = $('#username');
+            const password = $('#password');
+            const type = $('#type').val();
+
+            if (!username.val()) {
+                alert('Please fill in the username!');
+                username.focus();
+                return;
+            }
+
+            if (!password.val()) {
+                alert('Please fill in the password!');
+                password.focus();
+                return;
+            }
+
+            if (!type) {
+                alert('Please select a type!');
+                return;
+            }
+
+            const user = {
+                'username': username.val(),
+                'password': password.val(),
+                'type': type
+            };
+
+            const request = await fetch(
+                '/api/users?token=' + token,
+                {
+                    method: 'post',
+                    body: JSON.stringify(user)
+                }
+            );
+
+            if (request.ok)
+                window.location = token ? '/?token=' + token
+                    : '/';
+            else
+                alert('Failed to save user!');
+        }
+    </script>
+
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+
+    <link rel="stylesheet" href="css/question.css" />
+</head>
+
+<body>
+<div id="root">
+    Nome de usuário: <input id="username" name="Username" type="text" /> <br/>
+    Senha: <input id="password" name="Senha" type="text" /> <br/>
+
+    Tipo: <select id="type">
+        <option value="0">Administrador</option>
+        <option value="1">Professor</option>
+        <option value="2">Estudante</option>
+    </select> <br>
+
+    <input type="button" id="save-user" value="Save" />
+
+    <script>
+        document.getElementById("save-user").onclick = (e) => {
+            e.preventDefault()
+            saveUser()
+        }
+    </script>
+</div>
+</body>
+</html>

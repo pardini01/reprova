@@ -219,7 +219,7 @@ async function save() {
 
 
 const url = new URL(window.location.href);
-const token = url.searchParams.get("token");
+const token = url.searchParams.get("token") || localStorage.getItem("token");
 const id = url.searchParams.get("id");
 
 let question = {
