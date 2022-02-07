@@ -2,6 +2,9 @@ package br.ufmg.engsoft.reprova.mime.json;
 
 import java.lang.reflect.Type;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -13,12 +16,39 @@ import br.ufmg.engsoft.reprova.model.Answer;
 import br.ufmg.engsoft.reprova.model.Questionnaire;
 import br.ufmg.engsoft.reprova.model.Question;
 import br.ufmg.engsoft.reprova.model.Semester;
+import br.ufmg.engsoft.reprova.model.Subject;
+import br.ufmg.engsoft.reprova.model.ReprovaClass;
 
 
 /**
  * Json format for Reprova's types.
  */
 public class Json {
+	protected static class ReprovaClassDeserializer implements JsonDeserializer<ReprovaClass> {
+		@Override
+		public ReprovaClass deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
+			var obj = json.getAsJsonObject();
+			var code = obj.get("code").getAsString();
+			var subject = obj.get("subject").getAsString();
+			var semester = obj.get("semester").getAsString();
+			return new ReprovaClass(code, subject, semester);
+		}
+	}
+
+	protected static class SubjectDeserializer implements JsonDeserializer<Subject> {
+		@Override
+		public Subject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
+			Gson gson = new Gson();
+			var obj = json.getAsJsonObject();
+			var id = obj.get("_id").getAsJsonObject().get("$oid").getAsString();
+			var name = obj.get("name").getAsString();
+			var code = obj.get("code").getAsString();
+			var themes = gson.fromJson(obj.get("themes").getAsJsonArray(), List.class);
+			var description = obj.get("description").getAsString();
+			return new Subject(id, name, code, themes, description);
+		}
+	}
+
   /**
    * Deserializer for Semester.
    */
@@ -225,7 +255,7 @@ public class Json {
    * Currently, it supports only the Question type.
    */
   public Json() {
-    var parserBuilder = new GsonBuilder();
+    var parserBuilder = new GsonBuilder().serializeSpecialFloatingPointValues();
 
     parserBuilder.registerTypeAdapter(
       Question.Builder.class,
@@ -246,6 +276,10 @@ public class Json {
       Questionnaire.Generator.class,
       new QuestionnaireGeneratorDeserializer()
     );
+
+    //parserBuilder.registerTypeAdapter(ReprovaClass.class, new ReprovaClassDeserializer());
+
+    //parserBuilder.registerTypeAdapter(Subject.class, new SubjectDeserializer());
 
     this.gson = parserBuilder.create();
   }

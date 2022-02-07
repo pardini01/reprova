@@ -54,5 +54,12 @@ public class Reprova {
             var questionnairesDAO = new QuestionnairesDAO(db, json);
             Setup.questionnaireRoutes(json, questionnairesDAO, questionsDAO, templateEngine);
         }
+
+        if (envs.getEnableSubjectsAndClasses()) {
+        	var subjectsDAO = new SubjectsDAO(db, json);
+            Setup.subjectsRoutes(json, templateEngine, subjectsDAO);
+            var classesDAO = new ReprovaClassesDAO(db, json);
+            Setup.reprovaClassesRoutes(json, templateEngine, classesDAO);
+        }
     }
 }

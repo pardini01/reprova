@@ -17,6 +17,7 @@ public class Environments {
 	private boolean enableMultipleChoice;
 	private boolean enableQuestionStatistics;
 	private boolean enableUserTypes;
+	private boolean enableSubjectsAndClasses;
 
 	private Environments() {		
 		Optional<String> enableAnswersEnv = Optional.ofNullable(System.getenv("ENABLE_ANSWERS"));
@@ -60,7 +61,13 @@ public class Environments {
 				difficultyGroup -> this.enableUserTypes = difficultyGroup.toLowerCase().equals("true"),
 				() -> this.enableUserTypes = false
 		);
-		
+
+		Optional<String> enableSubjectsAndClassesEnv = Optional.ofNullable(System.getenv("ENABLE_SUBJECTS_AND_CLASSES"));
+		enableSubjectsAndClassesEnv.ifPresentOrElse(
+				enableSubjectsAndClasses -> this.enableSubjectsAndClasses = enableSubjectsAndClasses.toLowerCase().equals("true"),
+				() -> this.enableSubjectsAndClasses = false
+		);
+
 		this.port = Integer.parseInt(System.getenv("PORT"));
 		
 		this.token = System.getenv("REPROVA_TOKEN");
@@ -101,7 +108,11 @@ public class Environments {
 	public int getDifficultyGroup() {
 		return this.difficultyGroup;
 	}
-	
+
+	public boolean getEnableSubjectsAndClasses() {
+		return this.enableSubjectsAndClasses;
+	}
+
 	public String getToken() {
 		return this.token;
 	}
