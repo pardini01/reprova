@@ -1,13 +1,11 @@
 package br.ufmg.engsoft.reprova;
 
 import br.ufmg.engsoft.reprova.configuration.AuthorizerConfigFactory;
-import br.ufmg.engsoft.reprova.database.AnswersDAO;
-import br.ufmg.engsoft.reprova.database.Mongo;
-import br.ufmg.engsoft.reprova.database.QuestionsDAO;
-import br.ufmg.engsoft.reprova.database.QuestionnairesDAO;
+import br.ufmg.engsoft.reprova.database.*;
 import br.ufmg.engsoft.reprova.routes.Setup;
 import br.ufmg.engsoft.reprova.mime.json.Json;
 import br.ufmg.engsoft.reprova.model.Environments;
+import br.ufmg.engsoft.reprova.routes.api.Authorizer;
 import org.pac4j.sparkjava.SecurityFilter;
 import spark.template.mustache.MustacheTemplateEngine;
 
@@ -33,10 +31,19 @@ public class Reprova {
         var config = new AuthorizerConfigFactory(JWT_SALT, templateEngine).build();
         final var jwtFilter = new SecurityFilter(config, "ParameterClient");
 
-        Setup.routes(json, questionsDAO, jwtFilter, templateEngine);
-        Setup.authRoutes(templateEngine);
-
         Environments envs = Environments.getInstance();
+
+        UsersDAO usersDAO = null;
+        Authorizer authorizer = null;
+        if (envs.getEnableUserTypes()) {
+            usersDAO = new UsersDAO(db, json);
+            authorizer = new Authorizer(usersDAO);
+        } else {
+            authorizer = new Authorizer();
+        }
+
+        Setup.routes(json, questionsDAO, usersDAO, jwtFilter, templateEngine);
+        Setup.authRoutes(templateEngine, authorizer);
 
         if (envs.getEnableAnswers()) {
             var answersDAO = new AnswersDAO(db, json);

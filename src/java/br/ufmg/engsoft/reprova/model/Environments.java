@@ -5,7 +5,7 @@ import java.util.Optional;
 public class Environments {
 
 	private static Environments environments;
-	
+
 	private String token;
 	private int port;
 	
@@ -16,6 +16,7 @@ public class Environments {
 	private boolean enableEstimatedTime;
 	private boolean enableMultipleChoice;
 	private boolean enableQuestionStatistics;
+	private boolean enableUserTypes;
 
 	private Environments() {		
 		Optional<String> enableAnswersEnv = Optional.ofNullable(System.getenv("ENABLE_ANSWERS"));
@@ -53,6 +54,12 @@ public class Environments {
 			difficultyGroup -> this.difficultyGroup = Integer.parseInt(envDifficultyGroup.get()),
 			() -> this.difficultyGroup = 0
 		);
+
+		Optional<String> enableUserTypes = Optional.ofNullable(System.getenv("ENABLE_USER_TYPES"));
+		enableUserTypes.ifPresentOrElse(
+				difficultyGroup -> this.enableUserTypes = difficultyGroup.toLowerCase().equals("true"),
+				() -> this.enableUserTypes = false
+		);
 		
 		this.port = Integer.parseInt(System.getenv("PORT"));
 		
@@ -85,6 +92,10 @@ public class Environments {
 	
 	public boolean getEnableQuestionStatistics() {
 		return this.enableQuestionStatistics;
+	}
+
+	public boolean getEnableUserTypes() {
+		return this.enableUserTypes;
 	}
 
 	public int getDifficultyGroup() {

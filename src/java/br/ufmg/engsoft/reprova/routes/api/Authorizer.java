@@ -1,5 +1,8 @@
 package br.ufmg.engsoft.reprova.routes.api;
 
+import br.ufmg.engsoft.reprova.database.UsersDAO;
+import br.ufmg.engsoft.reprova.model.User;
+import br.ufmg.engsoft.reprova.model.UserType;
 import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.jwt.config.signature.SecretSignatureConfiguration;
 import org.pac4j.jwt.profile.JwtGenerator;
@@ -15,15 +18,25 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 
-public class Authorizer {
+import static spark.Spark.halt;
 
+public class Authorizer {
     private static final String USER_ADMIN = "admin";
     private static final String USER_ADMIN_PASSWORD = "654321";
+    private final UsersDAO usersDAO;
 
     private static final String JWT_SALT = "12345678901234567890123456789012";
     private static final int JWT_DURATION_5_MINUTES = 300000;
 
     protected static final Logger logger = LoggerFactory.getLogger(Authorizer.class);
+
+    public Authorizer(UsersDAO usersDAO) {
+        this.usersDAO = usersDAO;
+    }
+
+    public Authorizer() {
+        this.usersDAO = null;
+    }
 
     public void setup(MustacheTemplateEngine templateEngine) {
         Spark.get("/auth/jwt", this::jwt, templateEngine);
@@ -32,10 +45,14 @@ public class Authorizer {
 
     private ModelAndView jwt(final Request request, final Response response) {
         var token = "";
-        if (isValidUserRequest(request)) {
-            CommonProfile commonProfile = createCommonProfile();
+        var user = getUserFromRequest(request);
+        if (user != null) {
+            CommonProfile commonProfile = createCommonProfile(user);
             token = generateTokenWithDuration(commonProfile);
+        } else {
+            halt(401);
         }
+
         response.type("application/json");
         final var map = new HashMap();
         map.put("token", token);
@@ -51,19 +68,37 @@ public class Authorizer {
         return token;
     }
 
-    private CommonProfile createCommonProfile() {
+    private CommonProfile createCommonProfile(User user) {
         var commonProfile = new CommonProfile();
         commonProfile.setId("admin");
         var roles = new LinkedHashSet();
-        roles.add("ROLE_ADMIN");
+        if (user.getType() == UserType.ADMIN) {
+            roles.add("ROLE_ADMIN");
+        } else if (user.getType() == UserType.TEACHER) {
+            roles.add("ROLE_TEACHER");
+        } else if (user.getType() == UserType.STUDENT) {
+            roles.add("ROLE_STUDENT");
+        }
+
         commonProfile.setRoles(roles);
         return commonProfile;
     }
 
-    private boolean isValidUserRequest(Request request) {
+    private User getUserFromRequest(Request request) {
         var user = request.headers("user");
         var password = request.headers("password");
 
-        return USER_ADMIN.equals(user) && USER_ADMIN_PASSWORD.equals(password);
+        if (USER_ADMIN.equals(user) && USER_ADMIN_PASSWORD.equals(password)) {
+            return new User.Builder().username("admin").type(UserType.ADMIN).build();
+        }
+
+        if (this.usersDAO != null) {
+            var foundUser = this.usersDAO.getByUsernameAndPassword(user, password);
+            if (foundUser != null) {
+                return foundUser;
+            }
+        }
+
+        return null;
     }
 }
