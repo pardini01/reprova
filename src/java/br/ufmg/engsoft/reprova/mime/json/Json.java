@@ -250,7 +250,7 @@ public class Json {
    * Currently, it supports only the Question type.
    */
   public Json() {
-    var parserBuilder = new GsonBuilder();
+    var parserBuilder = new GsonBuilder().serializeSpecialFloatingPointValues();
 
     parserBuilder.registerTypeAdapter(
       Question.Builder.class,

@@ -35,7 +35,7 @@ public class ReprovaClasses extends ReprovaRoute {
 	public void setup(MustacheTemplateEngine templateEngine) {
 		Spark.get("/api/classes", this::get, templateEngine);
 		Spark.post("/api/classes", this::post);
-		logger.info("Setup /api/subjects");
+		logger.info("Setup /api/classes");
 	}
 	
 	private ModelAndView get(Request request, Response response) {

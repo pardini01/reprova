@@ -70,8 +70,9 @@ public class ReprovaClassesDAO {
 		if (myclass == null) {
 			throw new IllegalArgumentException("subject mustn't be null");
 		}
-		Document doc = new Document().append("code", myclass.code).append("subject", myclass.subject).append("semester",
-				myclass.semester);
+		Document doc = new Document().append("code", myclass.code)
+				.append("subject", myclass.subject)
+				.append("semester", myclass.semester);
 		var id = myclass.id;
 		if (id == null) {
 			this.collection.insertOne(doc);
