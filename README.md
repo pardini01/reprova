@@ -1,6 +1,12 @@
 # Reprova
 
-Trabalho prático da disciplina de Reuso de Software, DCC/UFMG, 2020/1
+Trabalho prático da disciplina de Reuso de Software, DCC/UFMG, 2021/2
+
+Integrantes:
+
+* Délisson Junio
+* Fábio Pereira
+* Rafael Pardini
 
 ## Instruções de construção/ambiente (Eclipse)
 
@@ -16,7 +22,7 @@ A execução do programa, entretanto, depende de um banco de dados MongoDB funci
 
 Alternativamente é possível iniciar o programa separadamente mas com uma instância do MongoDB sendo executada no local especificado no código. Esta alternativa também é facilitada pelo uso de Docker, bastando levantar a imagem utilizada no compose via `docker run`:
 
-`docker run -p27017:27017 mvertes/alpine-mongo`
+`docker run -p27017:27017 mongo:latest`
 
 Com isto, no Eclipse, se torna necessário finalmente configurar três variáveis de ambiente necessárias para o projeto original:
 
@@ -38,6 +44,10 @@ Além disso, também é possível configurar as variáveis que o grupo implement
 
 * `ENABLE_STATISTICS`, habilita  a funcionalidade de estatísticas automáticas para as questões
 
+* `ENABLE_SUBJECTS_AND_CLASSES`, habilita disciplinas e turmas
+
+* `ENABLE_USER_TYPES`, habilita o cadastro de diferentes usuários
+
 
  Apesar de se tratarem de variáveis de ambiente eu não consegui fazer com que o programa as lesse apenas exportando-as no terminal. A maneira pela qual consegui, graças a [esta resposta no Stack Overflow](https://stackoverflow.com/a/12810433/4357295), se baseia em configurar as variáveis de ambiente diretamente no Eclipse, o que pode ser feito segundo as imagens a seguir:
 
@@ -52,9 +62,7 @@ Alguns dos passos que fiz durante as tentativas de se rodar o projeto foram util
 
 ## Instruções de execução
 
-Ao ser iniciado, o servidor do Reprova escuta em `localhost:8888`. Se acessar este endpoint pelo navegador, ou fazer um `GET` via algum cliente REST (como o Postman), serão exibidas as questões públicas gravadas. Se acessar o endpoint passando como parâmetro o token (por exemplo, se seu token é `ABC`, o endpoint para a requisição seria `localhost:8888?token=ABC`) todas as questões serão listadas.
-
-Para inserir uma questão é necessário fazer uma requisição `POST` para `localhost:8888/api/questions?token=ABC`, com um payload no mesmo formato do exemplo:
+Ao ser iniciado, o servidor do Reprova escuta em `localhost:<PORT>`. É necessário então obter um token JWT em `/auth/jwt`. Para inserir uma questão é necessário fazer uma requisição `POST` para `/api/questions?token=<TOKEN_JWT>`, com um payload no mesmo formato do exemplo:
 
 ```JSON
 {
@@ -79,7 +87,7 @@ Para inserir uma questão é necessário fazer uma requisição `POST` para `loc
 
 O atributo `pvt` pode ser omitido, caso em que o Reprova o interpreta como `true`. Caso seja especificado ele pode assumir os valores tanto `true` quanto `false`, indicando se a questão é privada ou não.
 
-Para resgatar a questão é necesário fazer uma requisição `GET` para `localhost:8888/api/questions` (caso a questão seja privada, é necessário o token: `localhost:8888/api/questions?token=ABC`):
+Para resgatar a questão é necesário fazer uma requisição `GET` para `/api/questions` (caso a questão seja privada, é necessário o token: `/api/questions?token=<TOKEN_JWT>`):
 
 ```JSON
 {
@@ -118,6 +126,6 @@ Para resgatar a questão é necesário fazer uma requisição `GET` para `localh
     }
 }
 ```
-Observe que todas as features do nosso projeto estavam ligadas
+Observe que todas as features do nosso projeto estavam ligadas.
 
-Uma coleção do Postman foi incluída no projeto para efeitos de teste (https://github.com/ghapereira/reprova/blob/master/Reprova.postman_collection.json).
+Uma coleção do Postman foi incluída no projeto para efeitos de teste (https://github.com/pardini01/reprova/blob/master/Reprova.postman_collection.json).
