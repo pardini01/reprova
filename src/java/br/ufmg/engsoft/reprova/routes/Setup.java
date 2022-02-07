@@ -15,7 +15,9 @@ import br.ufmg.engsoft.reprova.database.QuestionnairesDAO;
 import br.ufmg.engsoft.reprova.routes.api.Questionnaires;
 import br.ufmg.engsoft.reprova.mime.json.Json;
 import br.ufmg.engsoft.reprova.model.Environments;
+import br.ufmg.engsoft.reprova.routes.api.Subjects;
 import spark.template.mustache.MustacheTemplateEngine;
+import br.ufmg.engsoft.reprova.database.SubjectsDAO;
 
 import static spark.Spark.before;
 
@@ -96,5 +98,11 @@ public class Setup {
         logger.info("Setting up auth route:");
         var authorizer = new Authorizer();
         authorizer.setup(templateEngine);
+    }
+
+    public static void subjectsRoutes(Json json, MustacheTemplateEngine templateEngine, SubjectsDAO subjectsDAO) {
+        logger.info("Setting up subjects route:");
+        var subjects = new Subjects(json, subjectsDAO);
+        subjects.setup(templateEngine);
     }
 }

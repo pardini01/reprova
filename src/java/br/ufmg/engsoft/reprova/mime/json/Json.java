@@ -13,12 +13,25 @@ import br.ufmg.engsoft.reprova.model.Answer;
 import br.ufmg.engsoft.reprova.model.Questionnaire;
 import br.ufmg.engsoft.reprova.model.Question;
 import br.ufmg.engsoft.reprova.model.Semester;
+import br.ufmg.engsoft.reprova.model.Subject;
 
 
 /**
  * Json format for Reprova's types.
  */
 public class Json {
+	protected static class SubjectDeserializer implements JsonDeserializer<Subject> {
+		@Override
+		public Subject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
+			var obj = json.getAsJsonObject();
+			var name = obj.get("name").getAsString();
+			var code = obj.get("code").getAsString();
+			var theme = obj.get("theme").getAsString();
+			var description = obj.get("description").getAsString();
+			return new Subject(name, code, theme, description);
+		}
+	}
+
   /**
    * Deserializer for Semester.
    */
