@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+
+    <title>Reprova</title>
+
+    <link rel="icon" href="images/favicon.png" />
+
+
+    <script
+            src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+
+    <script src="js/question.js"></script>
+
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+
+    <link rel="stylesheet" href="css/question.css" />
+</head>
+
+<body>
+<div id="root">
+    <form id="loginForm" action="/login" method="post">
+        <div>
+            <label for="username">Username</label>
+            <input type="text" placeholder="Nome de usuário" name="username" id="username" required>
+        </div>
+
+        <div>
+            <label for="psw">Senha</label>
+            <input type="password" placeholder="Senha" id="psw" required>
+        </div>
+
+        <div>
+            <i id="err"></i>
+        </div>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <script>
+        window.onload = function() {
+            var form = document.getElementById("loginForm");
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+
+                const user = document.getElementById("username").value
+                const password = document.getElementById("psw").value
+
+                const request = await fetch(
+                    '/auth/jwt',
+                    { method: 'get', headers: {user, password} }
+                );
+
+                if (request.ok) {
+                    const response = await request.json()
+                    const token = response["token"]
+                    localStorage.setItem("token", token)
+                    document.location = '/'
+                } else {
+                    document.getElementById("err").innerText = "Usuario e/ou senha invalidos"
+                }
+            }
+        }
+    </script>
+</div>
+</body>
+</html>

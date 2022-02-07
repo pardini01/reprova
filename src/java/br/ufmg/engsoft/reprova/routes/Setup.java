@@ -1,5 +1,6 @@
 package br.ufmg.engsoft.reprova.routes;
 
+import br.ufmg.engsoft.reprova.database.UsersDAO;
 import br.ufmg.engsoft.reprova.routes.api.Authorizer;
 import org.pac4j.sparkjava.SecurityFilter;
 import spark.Spark;
@@ -55,7 +56,7 @@ public class Setup {
      * @param templateEngine
      * @throws IllegalArgumentException if any parameter is null
      */
-    public static void routes(Json json, QuestionsDAO questionsDAO, SecurityFilter jwtFilter,
+    public static void routes(Json json, QuestionsDAO questionsDAO, UsersDAO usersDAO, SecurityFilter jwtFilter,
                               MustacheTemplateEngine templateEngine) {
         if (json == null) {
             throw new IllegalArgumentException("json mustn't be null");
@@ -75,6 +76,12 @@ public class Setup {
         logger.info("Setting up questions route:");
         var questions = new Questions(json, questionsDAO);
         questions.setup(templateEngine);
+
+        if (usersDAO != null) {
+            logger.info("Setting up login route:");
+            var loginRoute = new LoginRoutes(json, usersDAO);
+            loginRoute.setup(templateEngine);
+        }
     }
 
     public static void answerRoutes(Json json, AnswersDAO answersDAO, MustacheTemplateEngine templateEngine) {
@@ -96,9 +103,8 @@ public class Setup {
         questionnaires.setup(templateEngine);
     }
 
-    public static void authRoutes(MustacheTemplateEngine templateEngine) {
+    public static void authRoutes(MustacheTemplateEngine templateEngine, Authorizer authorizer) {
         logger.info("Setting up auth route:");
-        var authorizer = new Authorizer();
         authorizer.setup(templateEngine);
     }
 

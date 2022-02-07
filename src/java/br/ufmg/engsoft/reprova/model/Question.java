@@ -261,7 +261,8 @@ public class Question {
 	      acc += acc2/entry.getValue().entrySet().size();
 	    }
 
-	    return acc/this.record.size();
+	    double val = acc/this.record.size();
+	    return Double.isNaN(val) ? 0 : val;
   }
   
   /* Calculate Grades Standard Deviation */
@@ -281,7 +282,7 @@ public class Question {
 	  
 	  double stdDev = Math.sqrt(sum/(qtdNotas - 1));
 
-	  return stdDev;
+      return Double.isNaN(stdDev) ? 0 : stdDev;
   }
   
   /* Calculate Grades Median */

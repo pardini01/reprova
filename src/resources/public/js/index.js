@@ -31,12 +31,12 @@ function table_build_section(rows, container_elem, row_elem, cell_elem) {
     for (cell of row) {
       let cell_container = document.createElement(cell_elem.name);
       cell_container.className = cell_elem.className;
-      cell_container.colSpan = cell.colSpan || '1';
+      cell_container.colSpan = (cell && cell.colSpan) || '1';
 
-      if (cell.elem)
+      if (cell && cell.elem)
         cell_container.appendChild(cell.elem);
       else
-        cell_container.appendChild(document.createTextNode(cell.text || cell));
+        cell_container.appendChild(document.createTextNode((cell && cell.text) || cell));
 
       row_container.appendChild(cell_container);
     }
@@ -53,81 +53,85 @@ function questionsTable(data) {
     token ? [ 'Description', 'Theme', 'Record', 'Private', 'Difficulty', 'Estimated Time', 'Actions' ]
           : [ 'Description', 'Theme', 'Difficulty', 'Estimated Time', 'Actions' ]
   ];
-  const rows = data.map(
-    q => {
-      // wordwrap works better if the element is enclosed by a div.
-      let description = document.createElement('div');
-      description.className = 'description';
-      description.appendChild(document.createTextNode(q.description));
 
-      let actions = document.createElement('div');
 
-      let download = document.createElement('button');
-      download.appendChild(document.createTextNode('Download'));
-      download.type = 'button';
-      download.onclick = () => downloadQuestion(q.id);
-      actions.appendChild(download);
+  let rows = []
+  if (data) {
+    rows = data.map(
+        q => {
+          // wordwrap works better if the element is enclosed by a div.
+          let description = document.createElement('div');
+          description.className = 'description';
+          description.appendChild(document.createTextNode(q.description));
 
-      if (token) {
-        let remove = document.createElement('button');
-        remove.appendChild(document.createTextNode('Remove'));
-        remove.type = 'button';
-        remove.onclick = () => {
-          if (confirm('Remove question?'))
-            removeQuestion(q.id);
-        };
-        actions.appendChild(remove);
+          let actions = document.createElement('div');
 
-        let edit = document.createElement('button');
-        edit.appendChild(document.createTextNode('Edit'));
-        edit.type = 'button';
-        edit.onclick = () => editQuestion(q.id);
-        actions.appendChild(edit);
+          let download = document.createElement('button');
+          download.appendChild(document.createTextNode('Download'));
+          download.type = 'button';
+          download.onclick = () => downloadQuestion(q.id);
+          actions.appendChild(download);
 
-        let record = document.createElement('div');
-        for (semester in q.record) {
-          const grades = Object.entries(q.record[semester]);
+          if (token) {
+            let remove = document.createElement('button');
+            remove.appendChild(document.createTextNode('Remove'));
+            remove.type = 'button';
+            remove.onclick = () => {
+              if (confirm('Remove question?'))
+                removeQuestion(q.id);
+            };
+            actions.appendChild(remove);
 
-          let table = document.createElement('table');
-          table.className = 'record-table';
+            let edit = document.createElement('button');
+            edit.appendChild(document.createTextNode('Edit'));
+            edit.type = 'button';
+            edit.onclick = () => editQuestion(q.id);
+            actions.appendChild(edit);
 
-          table.appendChild(
-            table_build_section(
-              [[ { text: semester, colSpan: '2' } ]],
-              'thead',
-              'tr',
-              'th'
-            )
-          );
-          table.appendChild(
-            table_build_section(grades, 'tbody', 'tr', 'td')
-          );
+            let record = document.createElement('div');
+            for (semester in q.record) {
+              const grades = Object.entries(q.record[semester]);
 
-          record.appendChild(table);
+              let table = document.createElement('table');
+              table.className = 'record-table';
+
+              table.appendChild(
+                  table_build_section(
+                      [[ { text: semester, colSpan: '2' } ]],
+                      'thead',
+                      'tr',
+                      'th'
+                  )
+              );
+              table.appendChild(
+                  table_build_section(grades, 'tbody', 'tr', 'td')
+              );
+
+              record.appendChild(table);
+            }
+
+            return [
+              { elem: description },
+              q.theme,
+              { elem: record },
+              q.pvt,
+              q.estimatedTime,
+              q.difficulty,
+              { elem: actions }
+            ];
+          }
+          else {
+            return [
+              { elem: description },
+              q.theme,
+              q.estimatedTime,
+              q.difficulty,
+              { elem: actions }
+            ];
+          }
         }
-
-        return [
-          { elem: description },
-          q.theme,
-          { elem: record },
-          q.pvt,
-          q.estimatedTime,
-          q.difficulty,
-          { elem: actions }
-        ];
-      }
-      else {
-        return [
-          { elem: description },
-          q.theme,
-          q.estimatedTime,
-          q.difficulty,
-          { elem: actions }
-        ];
-      }
-    }
-  );
-
+    );
+  }
 
   let table = document.createElement('table');
   table.className = 'questions-table';
@@ -157,7 +161,11 @@ async function downloadQuestion(id) {
   const request = await fetch(
     '/api/questions?token=' + token + '&id=' + id
   );
-  const question = await request.json();
+  try {
+    const question = await request.json();
+  } catch (e) {
+    document.location = '/login.html'
+  }
 
   const statement = question.statement;
   const separator = statement.indexOf('/');
@@ -194,10 +202,15 @@ function editQuestion(id) {
 };
 
 async function loadQuestions() {
-  const request = await fetch('/api/questions?token=' + token);
-  const response = await request.json();
+  let response;
+  try {
+    const request = await fetch('/api/questions?token=' + token);
+    response = await request.json();
+  } catch (e) {
+    document.location = '/login.html'
+  }
 
-  let table = questionsTable(response);
+  let table = questionsTable(response.response);
   table.id = 'questions';
 
   $('#root').append(table);
@@ -224,7 +237,7 @@ async function refresh() {
 
 
 const url = new URL(window.location.href);
-const token = url.searchParams.get("token");
+const token = url.searchParams.get("token") || localStorage.getItem("token");
 
 let questionsDataTable;
 
@@ -232,17 +245,24 @@ $(document).ready(
   async () => {
     if (token)
       $('#new-question').click(
-        () => {
-          let location = '/question.html';
+          () => {
+            let location = '/question.html';
 
-          if (token)
-            location += '?token=' + token;
+            if (token)
+              location += '?token=' + token;
 
-          window.location = location;
-        }
+            window.location = location;
+          }
       );
     else
       $('#new-question').hide();
+
+    $('#new-user').click(
+        () => {
+          let location = '/user.html';
+          window.location = location;
+        }
+    );
 
     questionsDataTable = await loadQuestions();
   }
