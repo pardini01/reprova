@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "c738459c-81e9-4bcf-b34b-eebfbc94d221",
+		"_postman_id": "e56275d4-6f75-4ea7-b710-6045abb32151",
 		"name": "Reprova",
 		"description": "Coleção destinada a testar os endpoints do trabalho da disciplina de Reuso de Software - Reprova",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -12,25 +12,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}/api/questions",
-					"host": [
-						"{{server}}"
-					],
-					"path": [
-						"api",
-						"questions"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "List all questions",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{server}}/api/questions?token={{token}}",
+					"raw": "{{server}}/api/questions?token={{token_jwt}}",
 					"host": [
 						"{{server}}"
 					],
@@ -41,8 +23,48 @@
 					"query": [
 						{
 							"key": "token",
-							"value": "{{token}}"
+							"value": "{{token_jwt}}"
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Auth JWT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "user",
+						"value": "admin",
+						"type": "text"
+					},
+					{
+						"key": "password",
+						"value": "654321",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{server}}/auth/jwt",
+					"host": [
+						"{{server}}"
+					],
+					"path": [
+						"auth",
+						"jwt"
 					]
 				}
 			},
@@ -63,7 +85,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}/api/questions?token={{token}}",
+					"raw": "{{server}}/api/questions?token={{token_jwt}}",
 					"host": [
 						"{{server}}"
 					],
@@ -74,7 +96,7 @@
 					"query": [
 						{
 							"key": "token",
-							"value": "{{token}}"
+							"value": "{{token_jwt}}"
 						}
 					]
 				}
@@ -96,7 +118,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}/api/questions?token={{token}}",
+					"raw": "{{server}}/api/questions?token={{token_jwt}}",
 					"host": [
 						"{{server}}"
 					],
@@ -107,7 +129,7 @@
 					"query": [
 						{
 							"key": "token",
-							"value": "{{token}}"
+							"value": "{{token_jwt}}"
 						}
 					]
 				}
@@ -153,9 +175,15 @@
 			"name": "Get answers for question",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "token",
+						"value": "{{token_jwt}}",
+						"type": "default"
+					}
+				],
 				"url": {
-					"raw": "{{server}}/api/questions/{{questionId}}/answers",
+					"raw": "{{server}}/api/questions/{{questionId}}/answers?token={{token_jwt}}",
 					"host": [
 						"{{server}}"
 					],
@@ -164,6 +192,126 @@
 						"questions",
 						"{{questionId}}",
 						"answers"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token_jwt}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create subject",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Engenharia de Software\",\n    \"code\": \"DCCENGSOFT\",\n    \"description\": \"Engenharia de Software; Padrões de projeto; Metodologias ágeis\",\n    \"themes\": [\"Engenharia de Software\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}/api/subjects?token={{token_jwt}}",
+					"host": [
+						"{{server}}"
+					],
+					"path": [
+						"api",
+						"subjects"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token_jwt}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all subjects",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}/api/subjects?token={{token_jwt}}",
+					"host": [
+						"{{server}}"
+					],
+					"path": [
+						"api",
+						"subjects"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token_jwt}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create class",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"code\": \"TA1\",\n    \"subject\": \"Engenharia de Software\",\n    \"semester\": \"2022/2\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}/api/classes?token={{token_jwt}}",
+					"host": [
+						"{{server}}"
+					],
+					"path": [
+						"api",
+						"classes"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token_jwt}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all classes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}/api/classes?token={{token_jwt}}",
+					"host": [
+						"{{server}}"
+					],
+					"path": [
+						"api",
+						"classes"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{token_jwt}}"
+						}
 					]
 				}
 			},
@@ -174,7 +322,6 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "b7c57c41-54f0-4ac2-bf58-322a530287d8",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -184,7 +331,6 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "42843820-da8f-43e2-b097-ab8c9ffcd23a",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -194,20 +340,20 @@
 	],
 	"variable": [
 		{
-			"id": "e2786c16-82c8-4385-8edf-9ddb3248bec1",
 			"key": "token",
 			"value": "d2fad245dd1d8a4f863e3f1c32bdada723361e6f63cfddf56663e516e47347bb"
 		},
 		{
-			"id": "df28eaa9-49f1-45d0-9035-878564b493cb",
 			"key": "server",
-			"value": "localhost:8888"
+			"value": "localhost:8080"
 		},
 		{
-			"id": "839b2b26-8b78-44fa-9c4b-bb10fc1e393f",
 			"key": "questionId",
 			"value": "5"
+		},
+		{
+			"key": "token_jwt",
+			"value": "eyJhbGciOiJIUzI1NiJ9.eyIkaW50X3Blcm1zIjpbXSwic3ViIjoib3JnLnBhYzRqLmNvcmUucHJvZmlsZS5Db21tb25Qcm9maWxlI2FkbWluIiwiJGludF9yb2xlcyI6WyJST0xFX0FETUlOIl0sImV4cCI6MTY0NDE2NjU0NSwiaWF0IjoxNjQ0MTY2MjQ1fQ.cLcl9kwpnoprgdRSHJnsvIcr_CVwzjaMWYNMagApJeQ"
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }
