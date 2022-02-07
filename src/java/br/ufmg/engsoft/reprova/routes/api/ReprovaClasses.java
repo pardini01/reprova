@@ -6,67 +6,67 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import br.ufmg.engsoft.reprova.database.SubjectsDAO;
-import br.ufmg.engsoft.reprova.model.Subject;
+import br.ufmg.engsoft.reprova.database.ReprovaClassesDAO;
 import br.ufmg.engsoft.reprova.mime.json.Json;
 import br.ufmg.engsoft.reprova.model.ReprovaRoute;
+import br.ufmg.engsoft.reprova.model.ReprovaClass;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
 
-public class Subjects extends ReprovaRoute {
+public class ReprovaClasses extends ReprovaRoute {
 	protected static final Logger logger = LoggerFactory.getLogger(Subjects.class);
 
 	protected final Json json;
-
-	protected final SubjectsDAO subjectsDAO;
-
-	public Subjects(Json json, SubjectsDAO subjectsDAO) {
+	
+	protected final ReprovaClassesDAO classesDAO;
+	
+	public ReprovaClasses(Json json, ReprovaClassesDAO classesDAO) {
 		if (json == null) {
 			throw new IllegalArgumentException("json mustn't be null");
 		}
 
 		this.json = json;
-		this.subjectsDAO = subjectsDAO;
+		this.classesDAO = classesDAO;
 	}
 
 	public void setup(MustacheTemplateEngine templateEngine) {
-		Spark.get("/api/subjects", this::get, templateEngine);
-		Spark.post("/api/subjects", this::post);
+		Spark.get("/api/classes", this::get, templateEngine);
+		Spark.post("/api/classes", this::post);
 		logger.info("Setup /api/subjects");
 	}
-
+	
 	private ModelAndView get(Request request, Response response) {
 		logger.info("Received GET subjects");
 		response.type("application/json");
 		response.status(200);
-		var subjects = subjectsDAO.list();
+		var classes = classesDAO.list();
 
 		final Map map = new HashMap();
-		map.put("response", json.render(subjects));
+		map.put("response", json.render(classes));
 		return new ModelAndView(map, "response.mustache");
 	}
 
 	private Object post(Request request, Response response) {
 		String body = request.body();
 
-		logger.info("Received subjects post:" + body);
+		logger.info("Received classes post:" + body);
 
 		response.type("application/json");
 
-		Subject subject;
+		ReprovaClass myclass;
 		try {
-			subject = json.parse(body, Subject.class);
+			myclass = json.parse(body, ReprovaClass.class);
 		} catch (Exception e) {
 			logger.error("Invalid request payload!", e);
 			response.status(400);
 			return new ModelAndView(new HashMap<>(), "error400.mustache");
 		}
 
-		logger.info("Parsed " + subject.name);
-		var success = subjectsDAO.add(subject);
+		logger.info("Parsed " + myclass.code);
+		var success = classesDAO.add(myclass);
 		response.status(success ? 200 : 400);
 
 		logger.info("Done. Responding...");

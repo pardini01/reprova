@@ -9,8 +9,10 @@ import org.slf4j.LoggerFactory;
 
 import br.ufmg.engsoft.reprova.database.AnswersDAO;
 import br.ufmg.engsoft.reprova.database.QuestionsDAO;
+import br.ufmg.engsoft.reprova.database.ReprovaClassesDAO;
 import br.ufmg.engsoft.reprova.routes.api.Answers;
 import br.ufmg.engsoft.reprova.routes.api.Questions;
+import br.ufmg.engsoft.reprova.routes.api.ReprovaClasses;
 import br.ufmg.engsoft.reprova.database.QuestionnairesDAO;
 import br.ufmg.engsoft.reprova.routes.api.Questionnaires;
 import br.ufmg.engsoft.reprova.mime.json.Json;
@@ -104,5 +106,11 @@ public class Setup {
         logger.info("Setting up subjects route:");
         var subjects = new Subjects(json, subjectsDAO);
         subjects.setup(templateEngine);
+    }
+
+    public static void reprovaClassesRoutes(Json json, MustacheTemplateEngine templateEngine, ReprovaClassesDAO classesDAO) {
+        logger.info("Setting up subjects route:");
+        var classes = new ReprovaClasses(json, classesDAO);
+        classes.setup(templateEngine);
     }
 }

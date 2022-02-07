@@ -4,6 +4,7 @@ import br.ufmg.engsoft.reprova.configuration.AuthorizerConfigFactory;
 import br.ufmg.engsoft.reprova.database.AnswersDAO;
 import br.ufmg.engsoft.reprova.database.Mongo;
 import br.ufmg.engsoft.reprova.database.QuestionsDAO;
+import br.ufmg.engsoft.reprova.database.ReprovaClassesDAO;
 import br.ufmg.engsoft.reprova.database.SubjectsDAO;
 import br.ufmg.engsoft.reprova.database.QuestionnairesDAO;
 import br.ufmg.engsoft.reprova.routes.Setup;
@@ -51,5 +52,8 @@ public class Reprova {
 
         var subjectsDAO = new SubjectsDAO(db, json);
         Setup.subjectsRoutes(json, templateEngine, subjectsDAO);
+
+        var classesDAO = new ReprovaClassesDAO(db, json);
+        Setup.reprovaClassesRoutes(json, templateEngine, classesDAO);
     }
 }

@@ -14,12 +14,24 @@ import br.ufmg.engsoft.reprova.model.Questionnaire;
 import br.ufmg.engsoft.reprova.model.Question;
 import br.ufmg.engsoft.reprova.model.Semester;
 import br.ufmg.engsoft.reprova.model.Subject;
+import br.ufmg.engsoft.reprova.model.ReprovaClass;
 
 
 /**
  * Json format for Reprova's types.
  */
 public class Json {
+	protected static class ReprovaClassDeserializer implements JsonDeserializer<ReprovaClass> {
+		@Override
+		public ReprovaClass deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
+			var obj = json.getAsJsonObject();
+			var code = obj.get("code").getAsString();
+			var subject = obj.get("subject").getAsString();
+			var semester = obj.get("semester").getAsString();
+			return new ReprovaClass(code, subject, semester);
+		}
+	}
+
 	protected static class SubjectDeserializer implements JsonDeserializer<Subject> {
 		@Override
 		public Subject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
@@ -259,6 +271,10 @@ public class Json {
       Questionnaire.Generator.class,
       new QuestionnaireGeneratorDeserializer()
     );
+
+    //parserBuilder.registerTypeAdapter(ReprovaClass.class, new ReprovaClassDeserializer());
+
+    //parserBuilder.registerTypeAdapter(Subject.class, new SubjectDeserializer());
 
     this.gson = parserBuilder.create();
   }
