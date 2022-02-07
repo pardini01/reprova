@@ -71,7 +71,7 @@ public class SubjectsDAO {
 			throw new IllegalArgumentException("subject mustn't be null");
 		}
 		Document doc = new Document().append("name", subject.name).append("code", subject.code)
-				.append("theme", subject.theme).append("description", subject.description);
+				.append("themes", subject.themes).append("description", subject.description);
 		var id = subject.id;
 		if (id == null) {
 			this.collection.insertOne(doc);

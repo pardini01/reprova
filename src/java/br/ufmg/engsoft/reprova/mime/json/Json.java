@@ -2,6 +2,9 @@ package br.ufmg.engsoft.reprova.mime.json;
 
 import java.lang.reflect.Type;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -35,12 +38,14 @@ public class Json {
 	protected static class SubjectDeserializer implements JsonDeserializer<Subject> {
 		@Override
 		public Subject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
+			Gson gson = new Gson();
 			var obj = json.getAsJsonObject();
+			var id = obj.get("_id").getAsJsonObject().get("$oid").getAsString();
 			var name = obj.get("name").getAsString();
 			var code = obj.get("code").getAsString();
-			var theme = obj.get("theme").getAsString();
+			var themes = gson.fromJson(obj.get("themes").getAsJsonArray(), List.class);
 			var description = obj.get("description").getAsString();
-			return new Subject(name, code, theme, description);
+			return new Subject(id, name, code, themes, description);
 		}
 	}
 
